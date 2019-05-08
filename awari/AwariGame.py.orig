@@ -1,0 +1,282 @@
+from __future__ import print_function
+import sys
+sys.path.append('..')
+from Game import Game
+from .AwariLogic import Board
+import numpy as np
+
+"""
+Game class implementation for the game of Awari.
+Based on the TicTacToeGame Evgeny Tyurin which was
+based on the OthelloGame by Surag Nair.
+"""
+
+global game_verbose
+game_verbose = 0
+
+class AwariGame(Game):
+    def __init__(self, n=6):
+        self.n = n
+
+    def getInitBoard(self):
+        # return initial board (numpy board)
+        b = Board(self.n)
+        return np.array(b.pieces)
+
+    def getBoardSize(self):
+        # (a,b) tuple
+        # y-dimension required for NNet integration
+        # return (Board.pits_alloc, 1)
+        # return (1, Board.pits_alloc)
+        # return (Board.pits_alloc,)
+
+        # For NNet integration we transform the board into an image stack
+        # which highlights some useful structural information which would
+        # be hard to be derived independently.  AlphagoZero does this too.
+        # 1D version:
+        # return (2 * Board.pits_n,)
+        # 2D with feature planes version:
+        #return (4, 4, 3)
+        # 0 1 2 3 4 5 6 7 8 9 10 11
+        # game and two times 13 (0-11, 12 and up)
+        # return (4, 4, 27)
+        # experiment: add extra padding, so the 2d conv layer has more 
+        # possibilities to store patterns
+        return (6, 6, 100)
+
+    def getImageStackSize(self):
+        """ Returns size of image stack that is used as input to NNet
+        """
+        # return 3
+        # return 27
+        #
+        # 2 * (1 + 48 + 1):
+        # for both players:
+        # - one per number of stones (including one indicating empty pits)
+        # - one marking owned pits
+        return 100
+
+    def getImageStack(self, board):
+        """ Returns input stack for the given board
+        """
+        # create image stack that will be an input to NNet 
+        n = self.n
+        # main_planes = np.zeros(shape=(3, 1, Board.pits_alloc), dtype=np.float32)
+        # main_planes = np.zeros(shape=(3, Board.pits_alloc), dtype=np.float32)
+        # experiment: leave out the own pits; best choice should be mostly
+        # based on the regular pit contents
+        ## main_planes = np.zeros(shape=(3, 2 * Board.pits_n), dtype=np.float32)
+        ## # main images
+        ## # for i in range(Board.pits_alloc):
+        ## for i in range(2 * Board.pits_n):
+        ##     # main_planes[0][0][i] = board[0][i]
+        ##     main_planes[0][i] = board[0][i]
+        ## # possible capturing info
+        ## for i in range(n):
+        ##    if (board[0][i] == 1) or (board[0][i] == 2):
+        ##         # main_planes[1][0][i] = 1
+        ##         main_planes[1][i] = 1
+        ## # possible capturing info
+        ## for i in range(n, 2 * n):
+        ##     if (board[0][i] == 1) or (board[0][i] == 2):
+        ##         # main_planes[2][0][i] = 1
+        ##        main_planes[2][i] = 1
+
+        # 2D version for better compatibility, also circular sowing
+        # main_planes = np.zeros(shape=(3, 4, 4), dtype=np.float32)
+        # NOTE: back to channels last for compatibility with other games
+        # main_planes = np.zeros(shape=(4, 4, 3))
+        # main_planes = np.zeros(shape=(4, 4, 27))
+        # main_planes = np.zeros(shape=(6, 6, 27))
+        main_planes = np.zeros(shape=(6, 6, 100))
+        # main images
+        #
+        # 3 | 10  9  8  7
+        # 2 | 11        6
+        # 1 |  0        5
+        # 0 |  1  2  3  4
+        #   +------------
+        #      0  1  2  3
+        # ind_x = [ 0, 0, 1, 2, 3, 3, 3, 3, 2, 1, 0, 0 ]
+        # ind_y = [ 1, 0, 0, 0, 0, 1, 2, 3, 3, 3, 3, 2 ]
+        ind_x = [ 1, 1, 2, 3, 4, 4, 4, 4, 3, 2, 1, 1 ]
+        ind_y = [ 2, 1, 1, 1, 1, 2, 3, 4, 4, 4, 4, 3 ]
+        # for i in range(2 * Board.pits_n):
+        #     # main_planes[0][ind_x[i]][ind_y[i]] = board[0][i]
+        #     main_planes[ind_x[i]][ind_y[i]][0] = board[0][i]
+
+        ## possible capturing info
+        #for i in range(Board.pits_n):
+        #    if (board[0][i] == 1) or (board[0][i] == 2):
+        #        # main_planes[1][ind_x[i]][ind_y[i]] = 1
+        #        main_planes[ind_x[i]][ind_y[i]][1] = 1
+        #for i in range(Board.pits_n, 2 * Board.pits_n):
+        #    if (board[0][i] == 1) or (board[0][i] == 2):
+        #        # main_planes[2][ind_x[i]][ind_y[i]] = 1
+        #        main_planes[ind_x[i]][ind_y[i]][2] = 1
+
+        # possible capturing info
+        for i in range(2 * Board.pits_n):
+            stones = board[0][i]
+            # if stones < 12:
+            #     plane = 1 + stones
+            # else:
+            #     plane = 1 + 12
+            # if i >= Board.pits_n:
+            #    plane += 12
+            plane = stones
+            if i >= Board.pits_n:
+                plane += 50
+            main_planes[ind_x[i]][ind_y[i]][plane] = 1
+            if i < Board.pits_n:
+                main_planes[ind_x[i]][ind_y[i]][49] = 1
+            else:
+                main_planes[ind_x[i]][ind_y[i]][99] = 1
+
+        #print('board:')
+        #print(board)
+        #print('main_planes:')
+        #print(main_planes)
+
+        return main_planes
+
+    def getActionSize(self):
+        # return number of actions: select one of own pits or (forced) pass
+        return self.n + 1
+
+    def getNextState(self, board, player, action):
+        # Note: board is a regular board, not a canonical one!
+        # if player takes action on board, return next (board,player)
+        # action must be a valid move
+        #
+        if game_verbose: print("execute action:" + str(action) + " for " + str(player))
+        # DEBUG
+        #print('getNextState: board')
+        #print(type(board))
+        # END DEBUG
+        if action == 2 * self.n:
+            # pass; TODO: swap board??
+            return (board, -player)
+        b = Board(self.n)
+        b.pieces = np.copy(board)
+        # DEBUG
+        #print('getNextState: b1')
+        #print(type(b))
+        # END DEBUG
+        b.execute_move(action, player)
+        if game_verbose:
+            print("new board:")
+            display(b.pieces)
+        # return (b.pieces, -player)
+        # DEBUG
+        #print('getNextState: b result')
+        #print(type(b))
+        #print('getNextState: b pieces returned')
+        #print(type(b.pieces))
+        # END DEBUG
+        # OLD:return (b, -player)
+        return (b.pieces, -player)
+
+    def getValidMoves(self, board, player):
+        # return a fixed size binary vector
+        valids = [0] * self.getActionSize()
+        if game_verbose: print('get valid moves of player ' + str(player))
+        b = Board(self.n)
+        b.pieces = np.copy(board)
+        legalMoves = b.get_legal_moves(player)
+        if len(legalMoves) == 0:
+            valids[-1] = 1
+            return np.array(valids)
+        for x in legalMoves:
+            valids[x] = 1
+        return np.array(valids)
+
+    def getGameEnded(self, board, player):
+        # return 0 if not ended, 1 if this player won, -1 if player lost
+        # TODO: no need to copy board here?
+        # NOTE: player may also be -1, then we return result from the
+        # perspective of this player
+        b = Board(self.n)
+        b.pieces = np.copy(board)
+
+        if b.is_win(player):
+            return 1
+        if b.is_win(-player):
+            return -1
+        if b.pieces[0][Board.pit_no_captures] > 80:
+            # HACK: don't get stuck in no-capture loops
+            # may need board hashing trick instead
+            if b.is_majority(player):
+                return 1
+            elif b.is_majority(-player):
+                return -1
+            else:
+                # draw
+                return 1e-4
+        if b.has_legal_moves():
+            # TODO: captured stone balance is essential info for board
+            # evaluation
+            return 0
+        # draw has a very little value 
+        return 1e-4
+
+    def getCanonicalForm(self, board, player):
+        # NOTE: board already is a numpy array here, not a Board!
+        # return state if player==1, else return -state if player==-1
+        #DEBUG
+        #print('getCanonicalForm')
+        #print(type(board))
+        #END DEBUG
+        if player == 1:
+            # return board.pieces
+            #return board
+            ret_pieces = np.copy(board)
+            # DEBUG
+            #print('return board pieces')
+            #print(type(ret_pieces))
+            # DEBUG
+            return ret_pieces
+        else:
+            b = Board(self.n)
+            b.pieces = np.copy(board)
+            mirror = b.mirror()
+            # return mirror.pieces
+            # return mirror
+            ret_pieces = np.copy(mirror.pieces)
+            # DEBUG
+            #print('return mirror pieces')
+            #print(type(ret_pieces))
+            # DEBUG
+            return ret_pieces
+
+    def getSymmetries(self, board, pi):
+        # no mirror, or rotational, just the orignal
+        l = [(board, pi)]
+        return l
+
+    def stringRepresentation(self, board):
+        # numpy array (canonical board)
+        return board.tostring()
+
+    # for evaluation, just the number of stones captures minus the
+    # ones score by the opponent:
+    def getScore(self, board, player):
+        pits = self.n
+        val = board[0][Board.pit_captured_self] - board[0][Board.pit_captured_other]
+        if player == 1:
+            return val
+        else:
+            return -val
+
+def display(board):
+    pits = Board.pits_n
+    print("   ", end="")
+    for i in range(pits):
+        print (str(board[0][2 * pits - 1 - i]) + " ", end="")
+    print("")
+    print (str(board[0][Board.pit_captured_other]) + "               " + str(board[0][Board.pit_captured_self]))
+    print("   ", end="")
+    for i in range(pits):
+        print (str(board[0][i]) + " ", end="")
+    print("")
+
