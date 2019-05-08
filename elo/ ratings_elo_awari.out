@@ -1,0 +1,9 @@
+Rank Name                          Elo    +    - games score oppo. draws 
+   1 test_4_best_20iter.pth.tar    169   54   51   140   75%   -24    7% 
+   2 test_5_best_20iter.pth.tar    100   51   49   140   64%   -14    0% 
+   3 test_3_best_20iter.pth.tar     50   49   48   140   61%    -7    7% 
+   4 test_6_best_20iter.pth.tar    -22   47   47   140   46%     3    7% 
+   5 test_9_best_20iter.pth.tar    -34   49   50   140   43%     5    0% 
+   6 test_8_best_20iter.pth.tar    -36   46   46   140   43%     5   14% 
+   7 test_7_best_20iter.pth.tar    -88   50   51   140   39%    13    7% 
+   8 test_10_best_20iter.pth.tar  -138   50   54   140   29%    20    0% 
