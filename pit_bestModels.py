@@ -97,13 +97,15 @@ def getPlayer(player):
 #print("win/lost/draw", arena.playGames(args.number, verbose=True))
 
 
-for i in range(3, 11):
-    for j in range(i+1, 11): #i+1
+for i in range(3, 16):
+    for j in range(i+1, 16): #i+1
         file1 = 'test_'+str(i)+'_best_20iter.pth.tar'
         player = getPlayer('nn')
         file1 = 'test_'+str(j)+'_best_20iter.pth.tar'
         opponent = getPlayer('nn')
         print('awari|test_'+str(i)+'_best_20iter.pth.tar|test_'+str(j)+'_best_20iter.pth.tar|')
         arena = Arena.Arena(player, opponent, g, display=display)
+        
         print("awariscore", arena.playGames(args.number, verbose=False))
+        
 
