@@ -1,0 +1,17 @@
+Rank Name                          Elo    +    - games score oppo. draws 
+   1 fop3                          502   66   58   300   91%   -33    1% 
+   2 fop4                          430   57   52   300   87%   -29    2% 
+   3 fop5                          332   49   46   300   79%   -22    2% 
+   4 test_14_best_20iter.pth.tar   110   39   38   300   61%    -7    4% 
+   5 test_13_best_20iter.pth.tar    76   38   38   300   60%    -5   10% 
+   6 test_3_best_20iter.pth.tar     32   40   39   300   58%    -2    4% 
+   7 test_12_best_20iter.pth.tar    -6   37   37   300   49%     0    8% 
+   8 test_4_best_20iter.pth.tar    -22   38   38   300   52%     1   10% 
+   9 test_15_best_20iter.pth.tar   -29   37   38   300   45%     2   11% 
+  10 test_6_best_20iter.pth.tar    -66   38   38   300   45%     4    7% 
+  11 test_8_best_20iter.pth.tar    -95   36   36   300   41%     6   13% 
+  12 test_9_best_20iter.pth.tar   -164   41   42   300   35%    11    0% 
+  13 test_10_best_20iter.pth.tar  -176   39   40   300   32%    12    3% 
+  14 test_7_best_20iter.pth.tar   -213   38   39   300   31%    14   14% 
+  15 test_11_best_20iter.pth.tar  -313   43   46   300   19%    21    3% 
+  16 test_5_best_20iter.pth.tar   -397   46   50   300   15%    26    3% 

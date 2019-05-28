@@ -6,11 +6,11 @@ import matplotlib.pyplot as plt
 
 
 
-logfile_path1='compare.out'
+logfile_path1='compare_100iter.out'
 
 logfiles=[logfile_path1]
 #logfiles=[logfile_path1,logfile_path2,logfile_path3,logfile_path4,logfile_path5,logfile_path6,logfile_path7,logfile_path8,logfile_path9,logfile_path10]
-pgn_path1='pgn4pit_awari.pgn'
+pgn_path1='pgn4pit_awari_100iter.pgn'
 pgnfiles=[pgn_path1]
 #pgnfiles=[pgn_path1,pgn_path2,pgn_path3,pgn_path4]
 
