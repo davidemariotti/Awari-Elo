@@ -22,36 +22,22 @@ class Configuration:
             self.num_channels = num_channels  # used by nnet conv layers
 
     def __init__(self):
-        self.nnet_args = self._NNetArgs(num_channels = 64, dropout = 0.3, lr = 0.01)
+        self.nnet_args = self._NNetArgs(num_channels = 64, dropout = 0.3, lr = 0.0003)
 
 CONFIG = Configuration()
 
-# def new_run_log_dir(base_dir):
-#     log_dir = os.path.join('./log', base_dir)
-#    if not os.path.exists(log_dir):
-#         os.makedirs(log_dir)
-#     # run_id = len([name for name in os.listdir(log_dir)])
-#     # run_log_dir = os.path.join(log_dir, str(run_id))
-#     # return run_log_dir
-#     return log_dir
+
 
 class AwariNNet():
     def __init__(self, game, args):
-
-        # game params
-        # self.board_x, self.board_y = game.getBoardSize()
-        # (self.board_x,) = game.getBoardSize()
-        (self.board_x, self.board_y, self.image_stack_size) = game.getBoardSize()
+       
+       
+       
+        (self.board_x, self.board_y, self.image_stack_size) = game.getBoardSize(args.image_stack_layers)
         self.action_size = game.getActionSize()
         self.args = args
 
-        # experiment: do a three-plane encode:
-        # plane 0: regular game board
-        # plane 1: only flag the other pits that have 1 or 2 stones
-        # plane 2: only flag the own pits that have 1 or 2 stones
-
-        # Neural Net
-        #self.buildOrig(game)
+        
         self.buildResNet(game)
 
     def buildOrig(self, game):
@@ -59,8 +45,6 @@ class AwariNNet():
         NNet model, copied from Othello NNet, with reduced fully connected layers fc1 and fc2 and reduced nnet_args.num_channels
         :param game: game configuration
         """
-        # tensorboard logging:
-        # self.log_dir = new_run_log_dir('tensorboard')
 
         # Neural Net
         self.input_boards = Input(shape=(self.board_x, self.board_y, self.image_stack_size))  # s: batch_size x board_x x board_y x num_encoders
@@ -68,8 +52,6 @@ class AwariNNet():
         x_image = Reshape((self.board_x, self.board_y, self.image_stack_size))(self.input_boards)  # batch_size  x board_x x board_y x image_stack_size
         h_conv1 = Activation('relu')(BatchNormalization(axis=3)(Conv2D(CONFIG.nnet_args.num_channels, 3, padding='same', use_bias=False)(x_image)))  # batch_size  x board_x x board_y x num_channels
         h_conv2 = Activation('relu')(BatchNormalization(axis=3)(Conv2D(CONFIG.nnet_args.num_channels, 3, padding='same', use_bias=False)(h_conv1)))  # batch_size  x board_x x board_y x num_channels
-        #h_conv3 = Activation('relu')(BatchNormalization(axis=3)(Conv2D(CONFIG.nnet_args.num_channels, 3, padding='valid', use_bias=False)(h_conv2)))  # batch_size  x (board_x-2) x (board_y-2) x num_channels
-        #h_conv4 = Activation('relu')(BatchNormalization(axis=3)(Conv2D(CONFIG.nnet_args.num_channels, 3, padding='valid', use_bias=False)(h_conv3)))  # batch_size  x (board_x-4) x (board_y-4) x num_channels
         h_conv3 = Activation('relu')(BatchNormalization(axis=3)(Conv2D(CONFIG.nnet_args.num_channels, 3, padding='same', use_bias=False)(h_conv2)))  # batch_size  x (board_x-2) x (board_y-2) x num_channels
         h_conv4 = Activation('relu')(BatchNormalization(axis=3)(Conv2D(CONFIG.nnet_args.num_channels, 3, padding='same', use_bias=False)(h_conv3)))  # batch_size  x (board_x-4) x (board_y-4) x num_channels
         h_conv4_flat = Flatten()(h_conv4)
@@ -120,16 +102,14 @@ class AwariNNet():
         x = Dense(mc.value_fc_size, kernel_regularizer=l2(mc.l2_reg), activation="relu", name="value_dense")(x)
         value_out = Dense(1, kernel_regularizer=l2(mc.l2_reg), activation="tanh", name="v")(x)
 
-        # self.model = Model(in_x, [policy_out, value_out], name="chess_model")
-        # self.model = Model(in_x, [policy_out, value_out], name="awari_model")
         self.model = Model(inputs = self.input_boards, outputs = [policy_out, value_out])
         #self.model.summary()
         
         """
         Compiles the model to use optimizer and loss function tuned for supervised learning
         """
-        #opt = Adam(mc.lr)
-        opt = SGD(lr=mc.lr, momentum=0.9)
+        opt = Adam(mc.lr)
+        # opt = SGD(lr=mc.lr, momentum=0.9)
         losses = ['categorical_crossentropy', 'mean_squared_error'] # avoid overfit for supervised 
         self.model.compile(optimizer=opt, loss=losses) #, loss_weights=mc.trainer_loss_weights)
 

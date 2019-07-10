@@ -42,7 +42,7 @@ args = dotdict({
     'value_fc_size': 256,
     'trainer_loss_weights': [1.0, 1.0], # not used // [policy, value] prevent value overfit in SL
     
-    'image_stack_layers': 9,
+    'image_stack_layers': 1,
 })
 
 def new_run_log_dir(base_dir):

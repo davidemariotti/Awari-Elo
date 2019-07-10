@@ -22,15 +22,7 @@ Based on the NNet by SourKream and Surag Nair.
 """
 
 args = dotdict({
-    # 'lr': 0.001,
-    # 'dropout': 0.3,
-    # 'epochs': 10,
-    # 'batch_size': 64,
-    # 'cuda': False,
-    # 'num_channels': 512,
-
-    # 'lr': 0.2,
-    # 'lr': 0.1,
+    
     'lr': 0.01,
     'dropout': 0.3,# not used by residual model
     # 'epochs': 15,
@@ -49,16 +41,14 @@ args = dotdict({
     'l2_reg': 1e-4,
     'value_fc_size': 256,
     'trainer_loss_weights': [1.0, 1.0], # not used // [policy, value] prevent value overfit in SL
-
+    
+    'image_stack_layers': 9,
 })
 
 def new_run_log_dir(base_dir):
     log_dir = os.path.join('./log', base_dir)
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
-    # run_id = len([name for name in os.listdir(log_dir)])
-    # run_log_dir = os.path.join(log_dir, str(run_id))
-    # return run_log_dir
     return log_dir
 
 class NNetWrapper(NeuralNet):
@@ -66,7 +56,7 @@ class NNetWrapper(NeuralNet):
         self.game = game
         self.nnet = onnet(game, args)
         # self.board_x, self.board_y = game.getBoardSize()
-        self.board_x = game.getBoardSize()
+        self.board_x = game.getBoardSize(args.image_stack_layers)
         self.action_size = game.getActionSize()
         # tensorboard logging:
         self.log_dir = new_run_log_dir('keras-tensorboard')
@@ -79,39 +69,23 @@ class NNetWrapper(NeuralNet):
         # input_boards = np.asarray(input_boards)
         stacks = []
         for b in input_boards:
-            stacks.append(self.game.getImageStack(b))
+            stacks.append(self.game.getImageStack(b, args.image_stack_layers))
         input_boards = np.asarray(stacks)
         target_pis = np.asarray(target_pis)
         target_vs = np.asarray(target_vs)
         self.nnet.model.fit(x = input_boards, y = [target_pis, target_vs], batch_size = args.batch_size, epochs = args.epochs)
-        # add tensorboard logging
-        # self.nnet.model.fit(x = input_boards, y = [target_pis, target_vs], batch_size = args.batch_size, epochs = args.epochs, \
-        #                     callbacks = [TensorBoard(log_dir = self.log_dir, histogram_freq = 0, write_graph = True, write_images = True)])
-        # keras.callbacks.TensorBoard(log_dir='./logs', histogram_freq=0,  write_graph=True, write_images=False)
+       
 
     def predict(self, board):
         """
         board: np array with board
         """
-        # timing
-        #start = time.time()
-
-        # preparing input
-        # board = board[np.newaxis, :, :]
-        board = self.game.getImageStack(board)
-        # Probide dimension expected
+        
+        board = self.game.getImageStack(board, args.image_stack_layers)
         board = board[np.newaxis, :, :, :]
 
-        # run
+        
         pi, v = self.nnet.model.predict(board)
-        #print('board:')
-        #print(board)
-        #print('pi: ', end="")
-        #print(pi, end=" ")
-        #print('v: ', end="")
-        #print(v)
-
-        #print('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
         return pi[0], v[0]
 
     def save_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
