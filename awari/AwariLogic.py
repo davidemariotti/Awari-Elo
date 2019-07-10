@@ -296,17 +296,17 @@ class Board():
         best = -127
         best_i = -1
         for i in range(6):
-            #if scores[i] == 127 and i in moves:
-                #print(prefix + "*** oracle invalidated move " + i);
-            #if scores[i] != 127 and not i in moves:
-                #print(prefix + "*** neural net invalidated move " + i);
+            if scores[i] == 127 and i in moves:
+                print(prefix + "*** oracle invalidated move " + i);
+            if scores[i] != 127 and not i in moves:
+                print(prefix + "*** neural net invalidated move " + i);
             if scores[i] != 127 and scores[i] > best:
                 best = scores[i]
                 best_i = i
-        #if select > 5:  # pass
-            #if best != -127:
-                #print(prefix + 'unnecessary pass')
-        #elif scores[select] == best:
-            #print(prefix + 'best move selected')
-        #else:
-            #print(prefix + 'suboptimal move selected, diff ' + str(best - scores[select]))
+        # if select > 5:  # pass
+        #     if best != -127:
+        #         print(prefix + 'unnecessary pass')
+        # elif scores[select] == best:
+        #     print(prefix + 'best move selected')
+        # else:
+        #     print(prefix + 'suboptimal move selected, diff ' + str(best - scores[select]))

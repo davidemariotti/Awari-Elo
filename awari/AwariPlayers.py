@@ -40,11 +40,11 @@ class OracleAwariPlayer():
 
     def play(self, board):
         valid = self.game.getValidMoves(board, 1)
-        print('op: possible moves: ', end="")
-        for i in range(len(valid)):
-            if valid[i]:
-                print(i, end=' ')
-        print('')
+        #print('op: possible moves: ', end="")
+        #for i in range(len(valid)):
+            #if valid[i]:
+                #print(i, end=' ')
+        #print('')
 
         b = Board(6)
         b.pieces = np.copy(board)
@@ -67,8 +67,8 @@ class OracleAwariPlayer():
             # take other choice, if not absurd:
             if next_best != -127 and (best - next_best) <= self.mistake_max:
                 select = next_best_i
-                print('op: select suboptimal move')
-        print('op: select ' + str(select))
+                #print('op: select suboptimal move')
+        #print('op: select ' + str(select))
 
         return select
 

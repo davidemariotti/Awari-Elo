@@ -9,6 +9,7 @@ import numpy as np
 Game class implementation for the game of Awari.
 Based on the TicTacToeGame Evgeny Tyurin which was
 based on the OthelloGame by Surag Nair.
+Author: Kees Verstoep, Vrije Universiteit Amsterdam
 """
 
 global game_verbose
@@ -24,75 +25,47 @@ class AwariGame(Game):
         b = Board(self.n)
         return np.array(b.pieces)
 
-    def getBoardSize(self):
+    def getBoardSize(self, num_layers):
         # (a,b) tuple
         # y-dimension required for NNet integration
-        # return (Board.pits_alloc, 1)
-        # return (1, Board.pits_alloc)
-        # return (Board.pits_alloc,)
 
         # For NNet integration we transform the board into an image stack
         # which highlights some useful structural information which would
         # be hard to be derived independently.  AlphagoZero does this too.
-        # 1D version:
-        # return (2 * Board.pits_n,)
-        # 2D with feature planes version:
-        #return (4, 4, 3)
-        # 0 1 2 3 4 5 6 7 8 9 10 11
-        # game and two times 13 (0-11, 12 and up)
-        # return (4, 4, 27)
-        # experiment: add extra padding, so the 2d conv layer has more 
-        # possibilities to store patterns
-        # return (6, 6, 100)
-        return (6, 6, 9)
+        if num_layers == 9:
+            return (6, 6, 9)
+        elif num_layers == 15:
+            return (6, 6, 15)
+        elif num_layers == 13:
+            return (6, 6, 13)
+        elif num_layers == 1:
+            return (6, 6, 1)
+        else: 
+            raise Exception("Number of image stack layer unknown")
 
-    def getImageStackSize(self):
-        """ Returns size of image stack that is used as input to NNet
-        """
-        # return 3
-        # return 27
-        #
-        # 2 * (1 + 48 + 1):
-        # for both players:
-        # - one per number of stones (including one indicating empty pits)
-        # - one marking owned pits
-        #return 100
-        return 9
+    # def getImageStackSize(self):
+    #     """ Returns size of image stack that is used as input to NNet
+    #     """
+    #     if num_layers == 9:
+    #         return 9
+    #     elif num_layers == 15:
+    #         return 15
+    #     elif num_layers == 13:
+    #         return 13
+    #     elif num_layers == 1:
+    #         return 1
+    #     else: 
+    #         raise Exception("Number of image stack layer unknown")
 
-    def getImageStack(self, board):
+    def getImageStack(self, board, num_layers):
         """ Returns input stack for the given board
         """
         # create image stack that will be an input to NNet 
         n = self.n
-        # main_planes = np.zeros(shape=(3, 1, Board.pits_alloc), dtype=np.float32)
-        # main_planes = np.zeros(shape=(3, Board.pits_alloc), dtype=np.float32)
-        # experiment: leave out the own pits; best choice should be mostly
-        # based on the regular pit contents
-        ## main_planes = np.zeros(shape=(3, 2 * Board.pits_n), dtype=np.float32)
-        ## # main images
-        ## # for i in range(Board.pits_alloc):
-        ## for i in range(2 * Board.pits_n):
-        ##     # main_planes[0][0][i] = board[0][i]
-        ##     main_planes[0][i] = board[0][i]
-        ## # possible capturing info
-        ## for i in range(n):
-        ##    if (board[0][i] == 1) or (board[0][i] == 2):
-        ##         # main_planes[1][0][i] = 1
-        ##         main_planes[1][i] = 1
-        ## # possible capturing info
-        ## for i in range(n, 2 * n):
-        ##     if (board[0][i] == 1) or (board[0][i] == 2):
-        ##         # main_planes[2][0][i] = 1
-        ##        main_planes[2][i] = 1
 
         # 2D version for better compatibility, also circular sowing
-        # main_planes = np.zeros(shape=(3, 4, 4), dtype=np.float32)
-        # NOTE: back to channels last for compatibility with other games
-        # main_planes = np.zeros(shape=(4, 4, 3))
-        # main_planes = np.zeros(shape=(4, 4, 27))
-        # main_planes = np.zeros(shape=(6, 6, 27))
-        # main_planes = np.zeros(shape=(6, 6, 100))
-        main_planes = np.zeros(shape=(6, 6, 9))
+        # NOTE: channels last for compatibility with other games
+        main_planes = np.zeros(shape=(6, 6, num_layers))
         # main images
         #
         # 3 | 10  9  8  7
@@ -105,66 +78,67 @@ class AwariGame(Game):
         # ind_y = [ 1, 0, 0, 0, 0, 1, 2, 3, 3, 3, 3, 2 ]
         ind_x = [ 1, 1, 2, 3, 4, 4, 4, 4, 3, 2, 1, 1 ]
         ind_y = [ 2, 1, 1, 1, 1, 2, 3, 4, 4, 4, 4, 3 ]
-        # for i in range(2 * Board.pits_n):
-        #     # main_planes[0][ind_x[i]][ind_y[i]] = board[0][i]
-        #     main_planes[ind_x[i]][ind_y[i]][0] = board[0][i]
 
-        ## possible capturing info
-        #for i in range(Board.pits_n):
-        #    if (board[0][i] == 1) or (board[0][i] == 2):
-        #        # main_planes[1][ind_x[i]][ind_y[i]] = 1
-        #        main_planes[ind_x[i]][ind_y[i]][1] = 1
-        #for i in range(Board.pits_n, 2 * Board.pits_n):
-        #    if (board[0][i] == 1) or (board[0][i] == 2):
-        #        # main_planes[2][ind_x[i]][ind_y[i]] = 1
-        #        main_planes[ind_x[i]][ind_y[i]][2] = 1
-
-        # possible capturing info
-        #for i in range(2 * Board.pits_n):
-        #    stones = board[0][i]
-        #    # if stones < 12:
-        #    #     plane = 1 + stones
-        #    # else:
-        #    #     plane = 1 + 12
-        #    # if i >= Board.pits_n:
-        #    #    plane += 12
-        #    plane = stones
-        #    if i >= Board.pits_n:
-        #        plane += 50
-        #    main_planes[ind_x[i]][ind_y[i]][plane] = 1
-        #    if i < Board.pits_n:
-        #        main_planes[ind_x[i]][ind_y[i]][49] = 1
-        #    else:
-        #        main_planes[ind_x[i]][ind_y[i]][99] = 1
         # since this implementation uses canonical boards, always
         # assume player is on this side of the board (starting, white)
         player_white = 1
         for pit in range(2 * Board.pits_n):
             i = ind_x[pit]
             j = ind_y[pit]
-            if j <= 2:
-                if (j == 1 and i >= 1 and i <= 4) or (j == 2 and (i == 1 or i == 4)):
+            if (j == 1 and i >= 1 and i <= 4) or (j == 2 and (i == 1 or i == 4)):
+                if num_layers == 1:
+                    main_planes[i][j][0] = board[0][pit]
+                else:
                     main_planes[i][j][1] = board[0][pit]
                     main_planes[i][j][3] = 1
+                if num_layers == 9:
                     main_planes[i][j][5] = (board[0][pit] < 3)
-                    if player_white:
-                        main_planes[i][j][0] = 1
+                elif num_layers != 1: 
+                    main_planes[i][j][5] = (board[0][pit] > 2)
+                if num_layers == 15:
+                    main_planes[i][j][7] = (board[0][pit] == 0)
+                    main_planes[i][j][9] = (board[0][pit] == 1)
+                    main_planes[i][j][11] = (board[0][pit] == 2)
+                if num_layers == 13:
+                    main_planes[i][j][7] = (board[0][pit] == 1)
+                    main_planes[i][j][9] = (board[0][pit] == 2)
+                if player_white and num_layers != 1:
+                    main_planes[i][j][0] = 1
             else:
                 if (j == 4 and i >= 1 and i <= 4) or (j == 3 and (i == 1 or i == 4)):
-                    main_planes[i][j][2] = board[0][pit]
-                    main_planes[i][j][4] = 1
-                    main_planes[i][j][6] = (board[0][pit] < 3)
-                    if not player_white:
+                    if num_layers == 1:
+                        main_planes[i][j][0] = board[0][pit]
+                    else:
+                        main_planes[i][j][2] = board[0][pit]
+                        main_planes[i][j][4] = 1
+                    if num_layers == 9:
+                        main_planes[i][j][6] = (board[0][pit] < 3)
+                    elif num_layers != 1: 
+                        main_planes[i][j][6] = (board[0][pit] > 2)
+                    if num_layers == 15:
+                        main_planes[i][j][8] = (board[0][pit] == 0)
+                        main_planes[i][j][10] = (board[0][pit] == 1)
+                        main_planes[i][j][12] = (board[0][pit] == 2)
+                    if num_layers == 13:
+                        main_planes[i][j][8] = (board[0][pit] == 1)
+                        main_planes[i][j][10] = (board[0][pit] == 2)                   
+                    if not player_white and num_layers != 1:
                         main_planes[i][j][0] = 1
+        
 
+        if player_white and num_layers == 1:
+            main_planes[0][4][0] = 1
+        elif  not player_white and num_layers == 1:
+            main_planes[0][5][0] = 1 #indicate player for version layer1
+
+        if num_layers == 1:
+            main_planes[5][1][0] = board[0][Board.pit_captured_self]
+            main_planes[0][2][0] = board[0][Board.pit_captured_other]
+        else:
         # add own pits
-        main_planes[5][1][7] = board[0][Board.pit_captured_self]
-        main_planes[0][2][8] = board[0][Board.pit_captured_other]
-
-        #print('board:')
-        #print(board)
-        #print('main_planes:')
-        #print(main_planes)
+            main_planes[5][1][num_layers-2] = board[0][Board.pit_captured_self]
+            main_planes[0][2][num_layers-1] = board[0][Board.pit_captured_other]
+        
         return main_planes
 
     def getActionSize(self):
@@ -177,31 +151,15 @@ class AwariGame(Game):
         # action must be a valid move
         #
         if game_verbose: print("execute action:" + str(action) + " for " + str(player))
-        # DEBUG
-        #print('getNextState: board')
-        #print(type(board))
-        # END DEBUG
         if action == 2 * self.n:
             # pass; TODO: swap board??
             return (board, -player)
         b = Board(self.n)
         b.pieces = np.copy(board)
-        # DEBUG
-        #print('getNextState: b1')
-        #print(type(b))
-        # END DEBUG
         b.execute_move(action, player)
         if game_verbose:
             print("new board:")
             display(b.pieces)
-        # return (b.pieces, -player)
-        # DEBUG
-        #print('getNextState: b result')
-        #print(type(b))
-        #print('getNextState: b pieces returned')
-        #print(type(b.pieces))
-        # END DEBUG
-        # OLD:return (b, -player)
         return (b.pieces, -player)
 
     def getValidMoves(self, board, player):
@@ -220,7 +178,6 @@ class AwariGame(Game):
 
     def getGameEnded(self, board, player):
         # return 0 if not ended, 1 if this player won, -1 if player lost
-        # TODO: no need to copy board here?
         # NOTE: player may also be -1, then we return result from the
         # perspective of this player
         b = Board(self.n)
@@ -250,30 +207,16 @@ class AwariGame(Game):
     def getCanonicalForm(self, board, player):
         # NOTE: board already is a numpy array here, not a Board!
         # return state if player==1, else return -state if player==-1
-        #DEBUG
-        #print('getCanonicalForm')
-        #print(type(board))
-        #END DEBUG
         if player == 1:
             # return board.pieces
             #return board
             ret_pieces = np.copy(board)
-            # DEBUG
-            #print('return board pieces')
-            #print(type(ret_pieces))
-            # DEBUG
             return ret_pieces
         else:
             b = Board(self.n)
             b.pieces = np.copy(board)
             mirror = b.mirror()
-            # return mirror.pieces
-            # return mirror
             ret_pieces = np.copy(mirror.pieces)
-            # DEBUG
-            #print('return mirror pieces')
-            #print(type(ret_pieces))
-            # DEBUG
             return ret_pieces
 
     def getSymmetries(self, board, pi):
