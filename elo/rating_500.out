@@ -1,0 +1,8 @@
+Rank Name                           Elo    +    - games score oppo. draws 
+   1 fop3                           154   55   52   120   70%   -26    4% 
+   2 test_13_best_500iter.pth.tar    54   52   51   120   58%    -9    0% 
+   3 fop4                            20   51   51   120   50%    -3    4% 
+   4 test_14_best_500iter.pth.tar    19   51   51   120   53%    -3    3% 
+   5 test_3_best_500iter.pth.tar    -44   50   51   120   48%     7    0% 
+   6 fop5                           -96   52   55   120   34%    16    3% 
+   7 test_4_best_500iter.pth.tar   -107   51   53   120   38%    18    1% 

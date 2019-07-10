@@ -1,0 +1,10 @@
+Rank Name                          Elo    +    - games score oppo. draws 
+   1 fop3                          223   54   49   160   77%   -28    3% 
+   2 fop4                          123   48   46   160   63%   -15    3% 
+   3 test_4_best_100MCTS.pth.tar    11   47   46   160   50%    -1    2% 
+   4 fop5                            3   46   46   160   47%     0    3% 
+   5 test_4_best_75MCTS.pth.tar    -14   47   47   160   48%     2    1% 
+   6 test_4_best_50MCTS.pth.tar    -20   46   47   160   48%     3    1% 
+   7 test_4_best_25MCTS.pth.tar    -54   46   47   160   45%     7    2% 
+   8 test_4_best_10MCTS.pth.tar   -116   47   48   160   38%    14    1% 
+   9 test_4_best_5MCTS.pth.tar    -155   47   50   160   34%    19    0% 
