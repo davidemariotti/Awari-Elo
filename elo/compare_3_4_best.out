@@ -1,5 +1,0 @@
-directory: ./temp/awari-keras/
-number: 20
-mcts: 50
-cpuct: 1.000000
-awari|test_3_best_maxiter.pth.tar|test_4_best_maxiter.pth.tar|
