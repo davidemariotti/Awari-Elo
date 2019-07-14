@@ -42,6 +42,7 @@ print("cpuct: %f" % args.cpuct)
 #print("opponent: %s" % args.opponent)
 
 g = AwariGame()
+# General pit
 # test3 = 'test_3_best_20iter.pth.tar'
 # test4 = 'test_4_best_20iter.pth.tar'
 # test5 = 'test_5_best_20iter.pth.tar'
@@ -60,15 +61,26 @@ g = AwariGame()
 # fop5 = 'fop5'
 # tests = [test3, test4, test5, test6, test7, test8, test9, test10, test11, test12, test13, test14, test15, fop3, fop4, fop5]
 
-test3 = 'test_3_best_100iter.pth.tar'
-test4 = 'test_4_best_100iter.pth.tar'
-test12 = 'test_12_best_100iter.pth.tar'
-test13 = 'test_13_best_100iter.pth.tar'
-test14 = 'test_14_best_100iter.pth.tar'
+#pit 100 ietrations
+#test3 = 'test_3_best_100iter.pth.tar'
+#test4 = 'test_4_best_100iter.pth.tar'
+#test12 = 'test_12_best_100iter.pth.tar'
+#test13 = 'test_13_best_100iter.pth.tar'
+#test14 = 'test_14_best_100iter.pth.tar'
+#fop3 = 'fop3'
+#fop4 = 'fop4'
+#fop5 = 'fop5'
+#tests = [test3, test4, test12, test13, test14, fop3, fop4, fop5]
+
+#pit 500 ietrations
+test3 = 'test_3_best_500iter.pth.tar'
+test4 = 'test_4_best_500iter.pth.tar'
+test13 = 'test_13_best_500iter.pth.tar'
+test14 = 'test_14_best_500iter.pth.tar'
 fop3 = 'fop3'
 fop4 = 'fop4'
 fop5 = 'fop5'
-tests = [test3, test4, test12, test13, test14, fop3, fop4, fop5]
+tests = [test3, test4, test13, test14, fop3, fop4, fop5]
 
 
 class AwariNeuralNetPlayer():
@@ -128,31 +140,7 @@ def getPlayer(player):
         print("Unkown player: " + player)
         return None
 
-#opponent = getPlayer(args.opponent)
-#if opponent == None:
-   # sys.exit(1)
 
-
-#player = getPlayer(args.player)
-#if player == None:
-    #sys.exit(1)
-
-
-
-#arena = Arena.Arena(player, opponent, g, display=display)
-#print("win/lost/draw", arena.playGames(args.number, verbose=True))
-
-
-# for i in range(3, 16):
-#     for j in range(i+1, 16): #i+1
-#         file1 = 'test_'+str(i)+'_best_20iter.pth.tar'
-#         player = getPlayer('nn')
-#         file1 = 'test_'+str(j)+'_best_20iter.pth.tar'
-#         opponent = getPlayer('nn')
-#         print('awari|test_'+str(i)+'_best_20iter.pth.tar|test_'+str(j)+'_best_20iter.pth.tar|')
-#         arena = Arena.Arena(player, opponent, g, display=display)
-        
-#         print("awariscore", arena.playGames(args.number, verbose=False))
 for a, b in itertools.combinations(tests, 2):
     #print(a,b)
     file1 = a
